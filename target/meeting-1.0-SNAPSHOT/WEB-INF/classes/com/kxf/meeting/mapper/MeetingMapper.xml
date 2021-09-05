@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kxf.meeting.mapper.MeetingMapper">
+    <insert id="addMeeting" useGeneratedKeys="true" keyProperty="meetingid">
+        insert into meeting (meetingname, roomid, reservationistid, numberofparticipants, starttime, endtime,
+                             reservationtime, canceledtime, description, status)
+        values (#{meetingname}, #{roomid}, #{reservationistid}, #{numberofparticipants}, #{starttime}, #{endtime},
+                #{reservationtime}, #{canceledtime}, #{description}, #{status});
+    </insert>
+
+    <insert id="addParticipants">
+        insert into meetingparticipants (meetingid, employeeid) values
+        <foreach collection="mps" item="mp" separator=",">
+            (#{meetingid},#{mp})
+        </foreach>
+    </insert>
+
+    <select id="listMeetingDTOs" resultType="meetingDTO">
+        select m.meetingid,m.meetingname, m.starttime, m.endtime, m.reservationtime, m.roomid, m.reservationistid,
+        e.employeename as reservationistname, mr.roomname as roomname
+        from meeting as m,employee as e,meetingroom as mr
+        where m.reservationistid = e.employeeid
+        and m.roomid = mr.roomid
+        <if test="mdto.meetingname!=null">
+            and meetingname like concat('%',#{mdto.meetingname},'%')
+        </if>
+        <if test="mdto.roomname!=null">
+            and mr.roomname like concat('%',#{mdto.roomname},'%')
+        </if>
+        <if test="mdto.reservationistname!=null">
+            and e.employeename like concat('%',#{mdto.reservationistname},'%')
+        </if>
+        <if test="mdto.starttime!=null ">
+            and starttime &gt;= #{mdto.starttime}
+        </if>
+        <if test="mdto.endtime!=null ">
+            and endtime &lt;= #{mdto.endtime}
+        </if>
+        <if test="mdto.reservationtime!=null">
+            and m.reservationtime &gt;= #{mdto.reservationtime}
+        </if>
+        limit #{page},#{pagesize}
+    </select>
+
+
+    <select id="getTotal" resultType="long">
+        select count(*) from meeting as m, employee as e,meetingroom as mr
+        where m.reservationistid = e.employeeid
+        and m.roomid = mr.roomid
+        <if test="mdto.meetingname!=null">
+            and m.meetingname like concat('%',#{mdto.meetingname},'%')
+        </if>
+        <if test="mdto.roomname!=null">
+            and mr.roomname like concat('%',#{mdto.roomname},'%')
+        </if>
+        <if test="mdto.reservationistname!=null">
+            and e.employeename like concat('%',#{mdto.reservationistname},'%')
+        </if>
+        <if test="mdto.starttime!=null ">
+            and starttime &gt;= #{mdto.starttime}
+        </if>
+        <if test="mdto.endtime!=null ">
+            and endtime &lt;= #{mdto.endtime}
+        </if>
+        <if test="mdto.reservationtime!=null">
+            and m.reservationtime &gt;= #{mdto.reservationtime}
+        </if>
+    </select>
+
+    <select id="getMeetingByid" resultType="meeting">
+        select *
+        from meeting
+        where meetingid = #{meetingid};
+    </select>
+    <select id="getMeetingByname" resultType="meeting">
+        select *
+        from meeting
+        where meeting meetingname = #{meetingName};
+    </select>
+
+    <select id="getMeetingById" resultType="meeting">
+        select meeting.*
+        from meeting,
+             meetingparticipants
+        where meetingparticipants.meetingid = meeting.meetingid
+          and meetingparticipants.employeeid = #{employeeid}
+          and status = 0
+    </select>
+
+    <select id="getCancelMeeting" resultType="meeting">
+        select *
+        from meeting
+        where status = 1
+    </select>
+
+    <select id="getmeetingofmybook" resultType="meetingDTO">
+        select m.meetingid,
+               m.meetingname,
+               m.starttime,
+               m.endtime,
+               m.reservationtime,
+               m.roomid,
+               m.reservationistid,
+               e.employeename as reservationistname,
+               mr.roomname    as roomname
+        from meeting as m,
+             employee as e,
+             meetingroom as mr
+        where m.reservationistid = e.employeeid
+          and m.roomid = mr.roomid
+          and e.employeeid = #{employeeid}
+          and m.status = 0
+    </select>
+
+    <update id="cancelmeeting">
+        update meeting
+        set canceledreason = #{canceledreason},
+            status         = 1,
+            canceledtime   = now()
+        where meetingid = #{meetingid}
+    </update>
+</mapper>

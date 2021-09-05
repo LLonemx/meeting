@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kxf.meeting.mapper.DepartmentMapper">
+    <select id="getDepById" resultType="department">
+        select *
+        from department
+        where departmentid = #{id};
+    </select>
+
+    <select id="getAllDeps" resultType="department">
+        select *
+        from department;
+    </select>
+
+    <insert id="adddepartment">
+        insert into department (departmentname)
+        values (#{departmentname});
+    </insert>
+
+    <select id="getDepByName" resultType="department">
+        select *
+        from department
+        where departmentname = #{departmentname};
+    </select>
+
+    <delete id="deletedep">
+        delete
+        from department
+        where departmentid = #{departmentid};
+    </delete>
+
+    <update id="updatedep">
+        update department
+        set departmentname = #{name}
+        where departmentid = #{id};
+    </update>
+</mapper>
